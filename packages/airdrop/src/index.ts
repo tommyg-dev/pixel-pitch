@@ -40,6 +40,14 @@ async function runOnce() {
   const decimals = (await getMint(connection, mint)).decimals;
   const payer = loadPayer(PAYER_PATH);
 
+  // Safety: if a treasury address is configured, refuse to run with a mismatched key.
+  const expected = process.env.TREASURY_ADDRESS?.trim();
+  if (expected && payer.publicKey.toBase58() !== expected) {
+    throw new Error(
+      `Wrong key: loaded ${payer.publicKey.toBase58()} but TREASURY_ADDRESS is ${expected}.`
+    );
+  }
+
   // 1) treasury balance -> pool = POOL_PCT% of it
   const balanceUi = await treasuryBalance(connection, mint, payer.publicKey, decimals);
   const poolUi = (balanceUi * POOL_PCT) / 100;
