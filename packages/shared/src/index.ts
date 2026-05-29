@@ -19,8 +19,8 @@ export const PLAYER = {
 export const BALL = {
   RADIUS: 12,
   FRICTION: 0.985,
-  MAX_SPEED: 620,
-  KICK_FORCE: 380,
+  MAX_SPEED: 720,
+  KICK_FORCE: 540,
 } as const;
 
 export const MATCH = {

@@ -86,6 +86,28 @@ export function playMatchEnd(win: boolean) {
   else { [440, 392, 330, 262].forEach((f, i) => beep(f, 0.4 + i * 0.12, 0.3, 0.14, "triangle")); }
 }
 
+/** Punchy whoosh + thwack when a player kicks. */
+export function playKick() {
+  initAudio();
+  if (!ctx) return;
+  beep(240, 0, 0.08, 0.18, "square");
+  beep(110, 0.01, 0.16, 0.22, "triangle");
+  // short high-passed noise "thwack"
+  const dur = 0.1;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const hp = ctx.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 1100;
+  const g = ctx.createGain();
+  g.gain.value = 0.22;
+  src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+  src.start();
+}
+
 // ===== Looping chiptune background music =====
 // Driving Am–F–C–G loop: triangle bass + square arpeggio + noise hats,
 // scheduled against the Web Audio clock with a small lookahead.

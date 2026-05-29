@@ -3,7 +3,7 @@ import type { Room } from "colyseus.js";
 import { FIELD, MATCH, type InputMessage } from "@pixel-pitch/shared";
 import { CHAR_SCALE, ensureBallTexture, ensurePlayerTextures, variantFor } from "./sprites";
 import { drawStadium, drawPitch, drawAdBoards, type PitchTheme } from "./field";
-import { playGoal, playWhistle, playMatchEnd } from "../sound";
+import { playGoal, playWhistle, playMatchEnd, playKick } from "../sound";
 
 interface PlayerView extends Phaser.GameObjects.Container {
   sprite: Phaser.GameObjects.Image;
@@ -33,6 +33,7 @@ export class MatchScene extends Phaser.Scene {
   private prevPhase = "lobby";
   private myTeam: "blue" | "orange" | null = null;
   private theme: PitchTheme = "stadium";
+  private prevBallSpeed = 0;
 
   constructor() { super("match"); }
 
@@ -72,7 +73,7 @@ export class MatchScene extends Phaser.Scene {
     // An uncaught throw here would permanently halt Phaser's game loop.
     if (!state || !state.players || !state.ball) return;
     this.syncPlayers(state, delta);
-    this.syncBall(state);
+    this.syncBall(state, delta);
     this.syncHud(state);
     this.detectEvents(state);
     if (state.phase === "playing") this.sendInput();
@@ -157,31 +158,63 @@ export class MatchScene extends Phaser.Scene {
       if (this.keys.down.isDown || this.keys.s.isDown) dy += 1;
       kick = Phaser.Input.Keyboard.JustDown(this.keys.kick);
     }
+    if (kick) {
+      const me = this.playerSprites.get(this.mySessionId);
+      if (me) this.kickFx(me.x, me.y, me.facing);
+      playKick();
+    }
     const msg: InputMessage = { dx, dy, kick, seq: ++this.seq };
     this.room.send("input", msg);
   }
 
+  /** Player swing effect when you press kick. */
+  private kickFx(x: number, y: number, facing: number) {
+    const ring = this.add.circle(x, y + 8, 12).setStrokeStyle(3, 0xffffff, 0.85).setDepth(60);
+    this.tweens.add({ targets: ring, scale: 2.6, alpha: 0, duration: 260, ease: "Cubic.out", onComplete: () => ring.destroy() });
+    const puff = this.add.particles(x + facing * 16, y, "spark", {
+      speedX: { min: facing * 140, max: facing * 340 }, speedY: { min: -90, max: 90 },
+      lifespan: 320, scale: { start: 1, end: 0 }, quantity: 1,
+      tint: [0xffffff, 0xffd23f], emitting: false,
+    }).setDepth(60);
+    puff.explode(10);
+    this.time.delayedCall(360, () => puff.destroy());
+  }
+
+  /** Impact burst when the ball is struck hard. */
+  private ballImpactFx(x: number, y: number) {
+    const ring = this.add.circle(x, y, 10).setStrokeStyle(4, 0xffd23f, 0.95).setDepth(60);
+    this.tweens.add({ targets: ring, scale: 3.2, alpha: 0, duration: 320, ease: "Cubic.out", onComplete: () => ring.destroy() });
+    const burst = this.add.particles(x, y, "spark", {
+      speed: { min: 140, max: 360 }, angle: { min: 0, max: 360 },
+      lifespan: 380, scale: { start: 1, end: 0 }, quantity: 1,
+      tint: [0xffffff, 0xffd23f, 0xff9526], emitting: false,
+    }).setDepth(61);
+    burst.explode(14);
+    this.time.delayedCall(420, () => burst.destroy());
+    this.cameras.main.shake(90, 0.004);
+  }
+
   private syncPlayers(state: any, delta: number) {
+    const dt = Math.min(delta / 1000, 0.05);
     const seen = new Set<string>();
     state.players.forEach((p: any, id: string) => {
       seen.add(id);
       let c = this.playerSprites.get(id);
       if (!c) c = this.makePlayer(id, p);
 
-      const tx = p.x, ty = p.y;
-      const movedX = tx - c.prevX;
-      const speed = Math.hypot(tx - c.prevX, ty - c.prevY);
-      c.prevX = tx; c.prevY = ty;
-
-      c.x = Phaser.Math.Linear(c.x, tx, 0.35);
-      c.y = Phaser.Math.Linear(c.y, ty, 0.35);
+      // Dead reckoning: advance by the authoritative velocity each frame, then
+      // gently correct toward the authoritative position. This keeps motion
+      // continuous between 30Hz server updates (much smoother than lerp-to-point).
+      c.x = Phaser.Math.Linear(c.x + p.vx * dt, p.x, 0.16);
+      c.y = Phaser.Math.Linear(c.y + p.vy * dt, p.y, 0.16);
       c.setDepth(10 + c.y / 100);
 
-      if (Math.abs(movedX) > 0.2) c.facing = movedX > 0 ? 1 : -1;
+      const speed = Math.hypot(p.vx, p.vy);
+      if (Math.abs(p.vx) > 8) c.facing = p.vx > 0 ? 1 : -1;
       c.sprite.setScale(c.facing * CHAR_SCALE, CHAR_SCALE);
 
       // Walk cycle when moving; gentle idle bob otherwise.
-      if (speed > 0.6) {
+      if (speed > 12) {
         c.animClock += delta;
         const seqFrame = [1, 0, 2, 0];
         const frame = seqFrame[Math.floor(c.animClock / 110) % 4];
@@ -226,14 +259,19 @@ export class MatchScene extends Phaser.Scene {
     return c;
   }
 
-  private syncBall(state: any) {
-    const nx = Phaser.Math.Linear(this.ball.x, state.ball.x, 0.5);
-    const ny = Phaser.Math.Linear(this.ball.y, state.ball.y, 0.5);
+  private syncBall(state: any, delta: number) {
+    const dt = Math.min(delta / 1000, 0.05);
+    const nx = Phaser.Math.Linear(this.ball.x + state.ball.vx * dt, state.ball.x, 0.22);
+    const ny = Phaser.Math.Linear(this.ball.y + state.ball.vy * dt, state.ball.y, 0.22);
     this.ball.setPosition(nx, ny);
     this.ball.rotation += state.ball.vx * 0.0006;
     this.ballShadow.setPosition(nx, ny + 11);
     const sp = Math.hypot(state.ball.vx, state.ball.vy);
     this.ballShadow.setScale(1 + Math.min(sp / 2000, 0.4), 1);
+
+    // A sudden jump in ball speed means it was struck — pop an impact effect.
+    if (sp - this.prevBallSpeed > 220) this.ballImpactFx(state.ball.x, state.ball.y);
+    this.prevBallSpeed = sp;
   }
 
   private syncHud(state: any) {
