@@ -1,5 +1,6 @@
 import process from "node:process";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import bs58 from "bs58";
 import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import {
   getMint,
@@ -122,8 +123,17 @@ async function fetchStandings(): Promise<Standing[]> {
 }
 
 function loadPayer(path: string): Keypair {
-  const bytes = JSON.parse(readFileSync(path, "utf8")) as number[];
-  return Keypair.fromSecretKey(Uint8Array.from(bytes));
+  // 1) PAYER_SECRET env (base58 private key, e.g. exported from Phantom/Solflare)
+  const envSecret = process.env.PAYER_SECRET?.trim();
+  if (envSecret) return fromSecretString(envSecret);
+  // 2) a file containing either a JSON byte array or a base58 secret
+  if (existsSync(path)) return fromSecretString(readFileSync(path, "utf8").trim());
+  throw new Error("No treasury key. Set PAYER_SECRET (base58) or PAYER_KEYPAIR file.");
+}
+
+function fromSecretString(s: string): Keypair {
+  if (s.startsWith("[")) return Keypair.fromSecretKey(Uint8Array.from(JSON.parse(s) as number[]));
+  return Keypair.fromSecretKey(bs58.decode(s)); // base58 secret key
 }
 
 function fmt(n: number): string {
