@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build:shared": "npm run build -w @pixel-pitch/shared",
-    "build:client": "npm run build -w @pixel-pitch/client",
+    "build:client": "npm run build -w @pixel-pitch/shared && npm run build -w @pixel-pitch/client",
     "build": "npm run build -w @pixel-pitch/shared && npm run build -w @pixel-pitch/server",
     "start": "npm run start -w @pixel-pitch/server",
     "dev:server": "npm run dev -w @pixel-pitch/server",
