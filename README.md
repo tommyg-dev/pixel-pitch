@@ -38,8 +38,9 @@ into matchmaking. Ineligible wallets are rejected with a friendly message.
 ## Leaderboard & airdrops
 
 Standings are per-player and reset every **20 minutes** (one cycle). Each cycle,
-the **top 5 players split 10% of the treasury wallet's $KFi balance** (equal
-split among the present top players). Endpoints:
+the **top 5 players split 10% of the treasury wallet's $KFi balance**, ranked:
+1st gets the most, 2nd second, and 3rd–5th split the rest evenly
+(weights configurable via `RANK_WEIGHTS`). Endpoints:
 
 - `GET /leaderboard` — current-cycle standings (resets every 20 min)
 - `GET /airdrop/standings?minutes=20&limit=5` — ranked top players for the payout

@@ -18,6 +18,9 @@ const SERVER = process.env.SERVER_HTTP ?? "http://localhost:2567";
 const WINDOW_MIN = Number(process.env.WINDOW_MINUTES ?? "20");
 const POOL_PCT = Number(process.env.AIRDROP_PCT ?? "10"); // % of treasury per cycle
 const TOP_N = Number(process.env.TOP_N ?? "5");
+// Pool share per rank (1st, 2nd, then 3rd/4th/5th split the remainder).
+const WEIGHTS = (process.env.RANK_WEIGHTS ?? "40,25,11.67,11.67,11.66")
+  .split(",").map(Number).filter((n) => !Number.isNaN(n));
 
 const EXECUTE = process.argv.includes("--execute") || process.argv.includes("--loop");
 const LOOP = process.argv.includes("--loop");
@@ -46,35 +49,39 @@ async function runOnce() {
 
   console.log(`\nAirdrop — ${MINT} on ${RPC}`);
   console.log(`Treasury balance: ${fmt(balanceUi)}  ->  pool (${POOL_PCT}%): ${fmt(poolUi)}`);
-  console.log(`Window: last ${WINDOW_MIN} min   Top ${TOP_N} players split equally\n`);
+  console.log(`Window: last ${WINDOW_MIN} min   Top ${TOP_N} players, ranked split\n`);
 
   if (winners.length === 0) return console.log("No eligible players this cycle. Skipping.");
   if (poolUi <= 0) return console.log("Treasury pool is empty. Skipping.");
 
-  const shareUi = poolUi / winners.length; // equal split among the present top players
-  winners.forEach((w, i) =>
-    console.log(`  #${i + 1}  ${w.wallet}  (W:${w.wins} G:${w.goals})  ->  ${fmt(shareUi)} $KFi`)
+  // Ranked split: take as many weights as there are winners, normalise so the
+  // full pool is distributed (1st gets the most, then 2nd, the rest split evenly).
+  const w = WEIGHTS.slice(0, winners.length);
+  const wsum = w.reduce((a, b) => a + b, 0) || 1;
+  const sharesUi = winners.map((_, i) => (poolUi * (w[i] ?? 0)) / wsum);
+
+  winners.forEach((p, i) =>
+    console.log(`  #${i + 1}  ${p.wallet}  (W:${p.wins} G:${p.goals})  ->  ${fmt(sharesUi[i])} $KFi`)
   );
-  console.log(`\n  TOTAL: ${fmt(shareUi * winners.length)} to ${winners.length} wallet(s)`);
+  console.log(`\n  TOTAL: ${fmt(sharesUi.reduce((a, b) => a + b, 0))} to ${winners.length} wallet(s)`);
 
   if (!EXECUTE) return console.log("\n[dry-run] Re-run with --execute (one-shot) or --loop (auto every cycle).");
 
   const fromAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, payer.publicKey);
-  const rawShare = BigInt(Math.floor(shareUi * 10 ** decimals));
-  if (rawShare <= 0n) return console.log("Share rounds to zero. Skipping.");
-
-  for (const w of winners) {
+  for (let i = 0; i < winners.length; i++) {
+    const raw = BigInt(Math.floor(sharesUi[i] * 10 ** decimals));
+    if (raw <= 0n) continue;
     try {
-      const owner = new PublicKey(w.wallet);
+      const owner = new PublicKey(winners[i].wallet);
       const toAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, owner);
       const tx = new Transaction().add(
-        createTransferCheckedInstruction(fromAta.address, mint, toAta.address, payer.publicKey, rawShare, decimals)
+        createTransferCheckedInstruction(fromAta.address, mint, toAta.address, payer.publicKey, raw, decimals)
       );
       const sig = await connection.sendTransaction(tx, [payer]);
       await connection.confirmTransaction(sig, "confirmed");
-      console.log(`  ✓ ${w.wallet}  ${fmt(shareUi)} $KFi  (${sig})`);
+      console.log(`  ✓ #${i + 1} ${winners[i].wallet}  ${fmt(sharesUi[i])} $KFi  (${sig})`);
     } catch (err) {
-      console.error(`  ✗ ${w.wallet} FAILED:`, (err as Error).message);
+      console.error(`  ✗ ${winners[i].wallet} FAILED:`, (err as Error).message);
     }
   }
   console.log("Payout complete.");
