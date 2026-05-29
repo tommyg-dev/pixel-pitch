@@ -18,6 +18,7 @@ export class PlayerState extends Schema {
   inputDy = 0;
   inputKick = false;
   lastSeq = 0;
+  lastChatAt = 0;
 }
 
 export class BallState extends Schema {

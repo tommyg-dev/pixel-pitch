@@ -1,6 +1,6 @@
 import "./styles/app.css";
 import Phaser from "phaser";
-import { FIELD, type MatchEndMessage } from "@pixel-pitch/shared";
+import { FIELD, type MatchEndMessage, type ChatMessage } from "@pixel-pitch/shared";
 import { MatchScene } from "./scenes/MatchScene";
 import { connectWallet, publicKey, useTestWallet } from "./web3/wallet";
 import { joinMatch, fetchEligibility, fetchConfig, fetchLeaderboard, type GameMode } from "./net/client";
@@ -22,6 +22,11 @@ const goResult = document.getElementById("goResult") as HTMLDivElement;
 const playAgainBtn = document.getElementById("playAgainBtn") as HTMLButtonElement;
 const homeBtn = document.getElementById("homeBtn") as HTMLButtonElement;
 
+const chatForm = document.getElementById("chatForm") as HTMLFormElement;
+const chatInput = document.getElementById("chatInput") as HTMLInputElement;
+const chatSend = document.getElementById("chatSend") as HTMLButtonElement;
+const chatLog = document.getElementById("chatLog") as HTMLDivElement;
+
 let lastMode: GameMode = "pvp";
 let currentRoom: any = null;
 
@@ -35,6 +40,47 @@ let game: Phaser.Game | null = null;
 function setStatus(msg: string) { statusEl.textContent = msg; }
 function shorten(w: string) { return `${w.slice(0, 4)}…${w.slice(-4)}`; }
 function setPlayEnabled(on: boolean) { pvpBtn.disabled = !on; botBtn.disabled = !on; }
+
+// ----- Chat -----
+function setChatEnabled(on: boolean) {
+  chatInput.disabled = !on;
+  chatSend.disabled = !on;
+  chatInput.placeholder = on ? "Type a message… (Enter to send)" : "Join a match to chat…";
+}
+function appendChat(node: HTMLElement) {
+  chatLog.appendChild(node);
+  while (chatLog.childElementCount > 60) chatLog.removeChild(chatLog.firstChild!);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+function addChatMessage(m: ChatMessage) {
+  const row = document.createElement("div");
+  row.className = "chat__msg";
+  const who = document.createElement("span");
+  who.className = `who ${m.team}`;
+  who.textContent = `${m.name}:`;
+  const txt = document.createElement("span");
+  txt.textContent = m.text; // textContent escapes HTML — safe
+  row.append(who, txt);
+  appendChat(row);
+}
+function addChatSys(text: string) {
+  const row = document.createElement("div");
+  row.className = "chat__sys";
+  row.textContent = text;
+  appendChat(row);
+}
+
+chatForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = chatInput.value.trim();
+  if (!text || !currentRoom) return;
+  currentRoom.send("chat", { text });
+  chatInput.value = "";
+});
+
+// Don't let typing drive the game: pause Phaser's keyboard while the box is focused.
+chatInput.addEventListener("focus", () => { if (game?.input.keyboard) game.input.keyboard.enabled = false; });
+chatInput.addEventListener("blur", () => { if (game?.input.keyboard) game.input.keyboard.enabled = true; });
 
 connectBtn.addEventListener("click", async () => {
   try {
@@ -92,8 +138,12 @@ async function startMatch(mode: GameMode) {
     currentRoom = room;
     setStatus(mode === "bots" ? "Match vs CPU — kicking off!" : "In lobby — waiting for 6 players (3v3).");
     startGame(room);
+    chatLog.innerHTML = "";
+    addChatSys(mode === "bots" ? "Practice match vs CPU — say hi!" : "Connected. Chat with your lobby while you wait.");
+    setChatEnabled(true);
+    room.onMessage("chat", (m: ChatMessage) => addChatMessage(m));
     room.onMessage("matchEnd", (msg: MatchEndMessage) => showGameOver(msg, wallet));
-    room.onLeave(() => refreshLeaderboard());
+    room.onLeave(() => { setChatEnabled(false); addChatSys("Disconnected from match."); refreshLeaderboard(); });
   } catch (e: any) {
     setStatus(e?.message ?? "Could not join a match.");
     setPlayEnabled(true);

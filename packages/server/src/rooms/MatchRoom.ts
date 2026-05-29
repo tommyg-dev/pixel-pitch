@@ -32,6 +32,17 @@ export class MatchRoom extends Room<MatchState> {
       p.inputKick = !!msg.kick;
     });
 
+    this.onMessage("chat", (client, msg: { text?: string }) => {
+      const p = this.state.players.get(client.sessionId);
+      if (!p) return;
+      const text = String(msg?.text ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+      if (!text) return;
+      const now = Date.now();
+      if (now - p.lastChatAt < 400) return; // light rate limit
+      p.lastChatAt = now;
+      this.broadcast("chat", { name: p.name, team: p.team, text });
+    });
+
     // Fixed-timestep simulation.
     const tickMs = 1000 / MATCH.TICK_RATE;
     this.setSimulationInterval((deltaMs) => this.update(deltaMs), tickMs);

@@ -18,43 +18,35 @@
           <a href="#how">How it Works</a>
           <a href="#rewards">Rewards</a>
           <a href="#leaderboard">Leaderboard</a>
-          <a class="btn btn--sm" href="/play.html">PLAY NOW</a>
+          <a class="nav__tg" href="https://t.me/pixelpitch" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+          </a>
+          <a class="btn btn--play" href="/play.html">PLAY NOW</a>
         </div>
       </div>
     </nav>
 
     <!-- HERO -->
-    <header class="wrap hero">
-      <div>
-        <span class="kicker">▶ LIVE ON SOLANA · POWERED BY $PITCH</span>
-        <h1>RETRO <span class="hl">3v3</span><br />SOCCER,<br />ON-CHAIN.</h1>
-        <p class="lead">Hold the token. Drop into a lobby. Win as a squad of three and split the hourly airdrop.</p>
+    <header class="hero">
+      <div class="hero__bg" id="heroGame"></div>
+      <div class="hero__overlay"></div>
+      <div class="hero__content wrap">
+        <h1>RETRO <span class="hl">3v3</span> SOCCER<span class="hero__chain">LIVE ON CHAIN</span></h1>
         <div class="hero__cta">
-          <a class="btn" href="/play.html">▶ PLAY NOW</a>
-          <a class="btn btn--ghost" href="#how">HOW IT WORKS</a>
+          <a class="btn btn--play btn--lg" href="/play.html">▶ PLAY NOW</a>
         </div>
+        <a class="hero__how" href="#how">How it works ↓</a>
+
         <div class="hero__stats">
           <div class="stat"><div class="n">3v3</div><div class="l">Squad Matches</div></div>
           <div class="stat"><div class="n">90s</div><div class="l">Per Game</div></div>
           <div class="stat"><div class="n">1h</div><div class="l">Airdrop Cycle</div></div>
         </div>
-      </div>
 
-      <!-- animated CRT pitch preview -->
-      <div class="screen">
-        <div class="glow"></div>
-        <div class="pitch">
-          <div class="line mid"></div>
-          <div class="circle"></div>
-          <div class="goal l"></div>
-          <div class="goal r"></div>
-          <div class="player b" style="left:28%;top:35%"></div>
-          <div class="player b" style="left:22%;top:62%"></div>
-          <div class="player b" style="left:40%;top:50%"></div>
-          <div class="player o" style="left:72%;top:38%"></div>
-          <div class="player o" style="left:78%;top:64%"></div>
-          <div class="player o" style="left:60%;top:52%"></div>
-          <div class="ball-dot"></div>
+        <div class="ca-bar">
+          <span class="ca-bar__label">CA</span>
+          <code id="caText" class="ca-bar__addr">TBA — token launching soon</code>
+          <button id="copyCa" class="ca-bar__btn">COPY</button>
         </div>
       </div>
     </header>
@@ -131,7 +123,8 @@
         <div class="addr" id="contract">set TOKEN_MINT to display</div>
       </div>
       <div>
-        <a href="#how">How it Works</a> · <a href="#rewards">Rewards</a> · <a href="/play.html">Play</a>
+        <a href="https://t.me/pixelpitch" target="_blank" rel="noopener">Telegram</a> ·
+        <a href="#how">How it Works</a> · <a href="/play.html">Play</a>
       </div>
     </footer>
 

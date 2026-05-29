@@ -32,6 +32,18 @@
       <div id="gameWrap"></div>
       <p class="hint">Move: <b>WASD / Arrows</b> &nbsp;•&nbsp; Kick: <b>Space</b></p>
 
+      <section class="chat" id="chat">
+        <div class="chat__head">// LOBBY CHAT</div>
+        <div class="chat__log" id="chatLog">
+          <div class="chat__sys">Join a match to chat with your lobby.</div>
+        </div>
+        <form class="chat__form" id="chatForm">
+          <input id="chatInput" class="chat__input" type="text" maxlength="200"
+                 placeholder="Join a match to chat…" autocomplete="off" disabled />
+          <button id="chatSend" class="btn btn--sm" type="submit" disabled>SEND</button>
+        </form>
+      </section>
+
       <section class="section" id="leaderboard" style="padding-top:18px">
         <div class="label">// CURRENT STANDINGS</div>
         <div class="lb">

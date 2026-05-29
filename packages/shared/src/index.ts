@@ -66,6 +66,16 @@ export interface JoinOptions {
   displayName?: string;
 }
 
+// Chat: client sends { text }, server broadcasts the enriched message.
+export interface ChatSend {
+  text: string;
+}
+export interface ChatMessage {
+  name: string;
+  team: Team;
+  text: string;
+}
+
 export interface LeaderboardEntry {
   wallet: string;
   wins: number;
