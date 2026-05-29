@@ -1,0 +1,28 @@
+{
+  "name": "pixel-pitch",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Retro pixel-art 3v3 soccer with Solana token-gating and leaderboard airdrops",
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/client",
+    "packages/airdrop"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w @pixel-pitch/shared",
+    "build:client": "npm run build -w @pixel-pitch/client",
+    "build": "npm run build -w @pixel-pitch/shared && npm run build -w @pixel-pitch/server",
+    "start": "npm run start -w @pixel-pitch/server",
+    "dev:server": "npm run dev -w @pixel-pitch/server",
+    "dev:client": "npm run dev -w @pixel-pitch/client",
+    "dev": "npm run build:shared && concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
+    "airdrop": "npm run start -w @pixel-pitch/airdrop --"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

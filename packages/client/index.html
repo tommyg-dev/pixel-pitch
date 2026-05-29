@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Pitch — On-chain 3v3 Retro Soccer on Solana</title>
+    <meta name="description" content="Hold $PITCH, drop into a 3v3 retro soccer lobby, win matches, and earn hourly token airdrops on Solana." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="wrap nav__inner">
+        <div class="brand">PIXEL<span class="ball"> ⚽ </span>PITCH</div>
+        <div class="nav__links">
+          <a href="#how">How it Works</a>
+          <a href="#rewards">Rewards</a>
+          <a href="#leaderboard">Leaderboard</a>
+          <a class="btn btn--sm" href="/play.html">PLAY NOW</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="wrap hero">
+      <div>
+        <span class="kicker">▶ LIVE ON SOLANA · POWERED BY $PITCH</span>
+        <h1>RETRO <span class="hl">3v3</span><br />SOCCER,<br />ON-CHAIN.</h1>
+        <p class="lead">Hold the token. Drop into a lobby. Win as a squad of three and split the hourly airdrop.</p>
+        <div class="hero__cta">
+          <a class="btn" href="/play.html">▶ PLAY NOW</a>
+          <a class="btn btn--ghost" href="#how">HOW IT WORKS</a>
+        </div>
+        <div class="hero__stats">
+          <div class="stat"><div class="n">3v3</div><div class="l">Squad Matches</div></div>
+          <div class="stat"><div class="n">90s</div><div class="l">Per Game</div></div>
+          <div class="stat"><div class="n">1h</div><div class="l">Airdrop Cycle</div></div>
+        </div>
+      </div>
+
+      <!-- animated CRT pitch preview -->
+      <div class="screen">
+        <div class="glow"></div>
+        <div class="pitch">
+          <div class="line mid"></div>
+          <div class="circle"></div>
+          <div class="goal l"></div>
+          <div class="goal r"></div>
+          <div class="player b" style="left:28%;top:35%"></div>
+          <div class="player b" style="left:22%;top:62%"></div>
+          <div class="player b" style="left:40%;top:50%"></div>
+          <div class="player o" style="left:72%;top:38%"></div>
+          <div class="player o" style="left:78%;top:64%"></div>
+          <div class="player o" style="left:60%;top:52%"></div>
+          <div class="ball-dot"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- HOW IT WORKS -->
+    <section class="wrap section" id="how">
+      <div class="label">// HOW IT WORKS</div>
+      <h2>From wallet to winner in four steps</h2>
+      <p class="sub">No installs. Connect a Solana wallet in your browser and play instantly.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="ico">👛</div><div class="step">STEP 01</div>
+          <h3>Connect &amp; Hold</h3>
+          <p>Connect Phantom or Solflare. Hold the minimum $PITCH balance to unlock matchmaking.</p>
+        </div>
+        <div class="card">
+          <div class="ico">🎮</div><div class="step">STEP 02</div>
+          <h3>Join a Lobby</h3>
+          <p>Get matched into a 6-player room — three blue versus three orange. Kickoff is automatic.</p>
+        </div>
+        <div class="card">
+          <div class="ico">⚽</div><div class="step">STEP 03</div>
+          <h3>Win the Match</h3>
+          <p>90 seconds of fast pixel soccer. Outscore the rival squad to bank the win for your wallets.</p>
+        </div>
+        <div class="card">
+          <div class="ico">💸</div><div class="step">STEP 04</div>
+          <h3>Earn Airdrops</h3>
+          <p>Every hour the top teams' wallets receive a $PITCH airdrop, straight on-chain.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- REWARDS -->
+    <section class="wrap section" id="rewards">
+      <div class="label">// THE REWARD LOOP</div>
+      <h2>Top teams get paid, every hour</h2>
+      <div class="rewards">
+        <div class="reward-box">
+          <div class="big">⏱ HOURLY AIRDROP</div>
+          <p class="sub" style="margin:14px 0 0">Wins are recorded to an on-chain leaderboard. The top-performing wallets of each cycle are paid automatically in $PITCH.</p>
+        </div>
+        <ul class="ul">
+          <li><span class="tick">✔</span> Wallet-based leaderboard — your record follows your keys</li>
+          <li><span class="tick">✔</span> Token-gated lobbies keep matches real-stakes</li>
+          <li><span class="tick">✔</span> Server-authoritative play — no client-side cheating</li>
+          <li><span class="tick">✔</span> Payouts on Solana — fast and low fee</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section class="wrap section" id="leaderboard">
+      <div class="label">// CURRENT STANDINGS</div>
+      <h2>Live leaderboard</h2>
+      <p class="sub">Top wallets by wins this season. Climb it to make the airdrop.</p>
+      <div class="lb">
+        <table>
+          <thead><tr><th>#</th><th>Wallet</th><th>Wins</th><th>Goals</th></tr></thead>
+          <tbody id="lbBody"><tr><td colspan="4">loading standings…</td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:24px"><a class="btn btn--green" href="/play.html">▶ JOIN THE NEXT MATCH</a></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="wrap footer">
+      <div>
+        <div class="brand" style="font-size:13px">PIXEL ⚽ PITCH</div>
+        <div style="margin-top:8px">On-chain 3v3 retro soccer · built on Solana</div>
+      </div>
+      <div>
+        <div>$PITCH contract</div>
+        <div class="addr" id="contract">set TOKEN_MINT to display</div>
+      </div>
+      <div>
+        <a href="#how">How it Works</a> · <a href="#rewards">Rewards</a> · <a href="/play.html">Play</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/landing.ts"></script>
+  </body>
+</html>

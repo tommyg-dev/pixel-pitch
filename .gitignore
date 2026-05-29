@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+*.log
+.env
+.env.*
+!.env.example
+packages/server/src/data/leaderboard.json
+.DS_Store
+keypair*.json

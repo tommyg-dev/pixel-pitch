@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Play · Pixel Pitch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="wrap nav__inner">
+        <a class="brand" href="/index.html" style="text-decoration:none">PIXEL<span class="ball"> ⚽ </span>PITCH</a>
+        <div class="nav__links">
+          <a href="/index.html">← Home</a>
+          <button id="musicBtn" class="btn btn--sm btn--ghost" title="Toggle music">♪ MUSIC: OFF</button>
+          <span id="walletPill" class="pill" style="display:none"></span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="wrap play-main">
+      <div class="controls">
+        <button id="connectBtn" class="btn btn--sm">CONNECT WALLET</button>
+        <button id="skipBtn" class="btn btn--sm btn--ghost">SKIP (TEST)</button>
+        <button id="pvpBtn" class="btn btn--sm btn--green" disabled>PLAY VS PLAYERS</button>
+        <button id="botBtn" class="btn btn--sm" disabled>PLAY VS BOTS</button>
+        <span id="status" class="status">Connect Phantom or Solflare to play.</span>
+      </div>
+
+      <div id="gameWrap"></div>
+      <p class="hint">Move: <b>WASD / Arrows</b> &nbsp;•&nbsp; Kick: <b>Space</b></p>
+
+      <section class="section" id="leaderboard" style="padding-top:18px">
+        <div class="label">// CURRENT STANDINGS</div>
+        <div class="lb">
+          <table>
+            <thead><tr><th>#</th><th>Wallet</th><th>Wins</th><th>Goals</th></tr></thead>
+            <tbody id="lbBody"><tr><td colspan="4">loading…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="gameOverModal" class="modal-overlay" style="display:none">
+      <div class="modal">
+        <div class="modal__title">GAME OVER</div>
+        <div id="goWinner" class="modal__winner">—</div>
+        <div id="goScore" class="modal__score">0 - 0</div>
+        <div id="goResult" class="modal__result">&nbsp;</div>
+        <div class="modal__btns">
+          <button id="playAgainBtn" class="btn btn--green">▶ PLAY AGAIN</button>
+          <button id="homeBtn" class="btn btn--ghost">← BACK TO HOME</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
