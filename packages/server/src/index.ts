@@ -5,7 +5,7 @@ import cors from "cors";
 import { Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MatchRoom } from "./rooms/MatchRoom.js";
-import { cycleStandings, winnersSince } from "./data/leaderboard.js";
+import { cycleStandings, trailingStandings, winnersSince } from "./data/leaderboard.js";
 import { AIRDROP } from "@pixel-pitch/shared";
 import { isEligible, gateConfig } from "./tokenGate.js";
 
@@ -32,11 +32,18 @@ app.get("/leaderboard", (_req, res) => {
   res.json(cycleStandings(AIRDROP.CYCLE_MINUTES, 50));
 });
 
-// Trailing-window winners, used by the airdrop tool (defaults to one cycle).
+// Trailing-window winners (legacy; per-wallet win counts).
 app.get("/airdrop/winners", (req, res) => {
   const minutes = Number(req.query.minutes ?? AIRDROP.CYCLE_MINUTES);
-  const since = Date.now() - minutes * 60_000;
-  res.json(winnersSince(since));
+  res.json(winnersSince(Date.now() - minutes * 60_000));
+});
+
+// Ranked standings (wins+goals) over the payout window — the airdrop tool
+// pays the top N from this. Defaults to one cycle.
+app.get("/airdrop/standings", (req, res) => {
+  const minutes = Number(req.query.minutes ?? AIRDROP.CYCLE_MINUTES);
+  const limit = Number(req.query.limit ?? 5);
+  res.json(trailingStandings(minutes, limit));
 });
 
 const httpServer = createServer(app);

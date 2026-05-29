@@ -72,14 +72,11 @@ export function topPlayers(limit = 50): LeaderboardEntry[] {
     .slice(0, limit);
 }
 
-/**
- * Per-player standings for the CURRENT cycle only. Standings reset on each
- * aligned cycle boundary (so the board wipes every `cycleMinutes`).
- */
-export function cycleStandings(cycleMinutes: number, limit = 50): { wallet: string; wins: number; goals: number }[] {
+export interface Standing { wallet: string; wins: number; goals: number }
+
+/** Per-player wins+goals from all matches since `sinceMs`, ranked. */
+function standingsSince(sinceMs: number, limit = 50): Standing[] {
   const store = load();
-  const cycleMs = cycleMinutes * 60_000;
-  const cycleStart = Date.now() - (Date.now() % cycleMs);
   const tally = new Map<string, { wins: number; goals: number }>();
   const get = (w: string) => {
     let e = tally.get(w);
@@ -87,7 +84,7 @@ export function cycleStandings(cycleMinutes: number, limit = 50): { wallet: stri
     return e;
   };
   for (const m of store.matches) {
-    if (m.endedAt < cycleStart) continue;
+    if (m.endedAt < sinceMs) continue;
     if (m.winner !== "draw") {
       const winners = m.winner === "blue" ? m.blueWallets : m.orangeWallets;
       for (const w of winners) if (!w.startsWith("BOT:")) get(w).wins++;
@@ -98,6 +95,20 @@ export function cycleStandings(cycleMinutes: number, limit = 50): { wallet: stri
     .map(([wallet, v]) => ({ wallet, wins: v.wins, goals: v.goals }))
     .sort((a, b) => b.wins - a.wins || b.goals - a.goals)
     .slice(0, limit);
+}
+
+/**
+ * Standings for the CURRENT cycle only — resets on each aligned cycle boundary
+ * (the board wipes every `cycleMinutes`). Used for the live leaderboard.
+ */
+export function cycleStandings(cycleMinutes: number, limit = 50): Standing[] {
+  const cycleMs = cycleMinutes * 60_000;
+  return standingsSince(Date.now() - (Date.now() % cycleMs), limit);
+}
+
+/** Standings over a trailing window — used by the airdrop payout. */
+export function trailingStandings(minutes: number, limit = 50): Standing[] {
+  return standingsSince(Date.now() - minutes * 60_000, limit);
 }
 
 /** Wallets that won at least one match in the trailing window (for airdrops). */

@@ -37,21 +37,25 @@ into matchmaking. Ineligible wallets are rejected with a friendly message.
 
 ## Leaderboard & airdrops
 
-Match results are persisted to `packages/server/src/data/leaderboard.json`. Endpoints:
+Standings are per-player and reset every **20 minutes** (one cycle). Each cycle,
+the **top 5 players split 10% of the treasury wallet's $KFi balance** (equal
+split among the present top players). Endpoints:
 
-- `GET /leaderboard` — top players by wins/goals
-- `GET /airdrop/winners?minutes=60` — wallets that won in the trailing window
+- `GET /leaderboard` — current-cycle standings (resets every 20 min)
+- `GET /airdrop/standings?minutes=20&limit=5` — ranked top players for the payout
 
 Run the airdrop (defaults to **devnet**, **dry-run**):
 
 ```bash
 cp packages/airdrop/.env.example packages/airdrop/.env   # set TOKEN_MINT + PAYER_KEYPAIR
-npm run airdrop                 # dry-run: prints the payout plan
-npm run airdrop -- --execute    # prompts for "YES" before broadcasting transfers
+npm run airdrop                 # dry-run: prints the payout plan, sends nothing
+npm run airdrop -- --execute    # one-shot: pays the current top 5 (no prompt)
+npm run airdrop -- --loop       # AUTO: pays every cycle at the 20-min boundary
 ```
 
-Schedule it hourly with cron once you trust the plan:
-`0 * * * * cd /path/to/pixel-pitch && npm run airdrop -- --execute`
+Tune via `packages/airdrop/.env`: `AIRDROP_PCT` (default 10), `TOP_N` (default 5),
+`WINDOW_MINUTES` (default 20). Run `--loop` on a trusted always-on worker (not the
+public game server) so the treasury key isn't exposed.
 
 ## Production hardening (not done yet)
 
