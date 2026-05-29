@@ -19,7 +19,7 @@ const RPC = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 const MINT = process.env.TOKEN_MINT ?? "";
 const PAYER_PATH = process.env.PAYER_KEYPAIR ?? "./keypair.json";
 const SERVER = process.env.SERVER_HTTP ?? "http://localhost:2567";
-const WINDOW_MIN = Number(process.env.WINDOW_MINUTES ?? "60");
+const WINDOW_MIN = Number(process.env.WINDOW_MINUTES ?? "20");
 const PER_WIN = Number(process.env.TOKENS_PER_WIN ?? "100");
 
 const EXECUTE = process.argv.includes("--execute");

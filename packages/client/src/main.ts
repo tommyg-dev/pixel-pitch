@@ -2,15 +2,18 @@ import "./styles/app.css";
 import Phaser from "phaser";
 import { FIELD, type MatchEndMessage, type ChatMessage } from "@pixel-pitch/shared";
 import { MatchScene } from "./scenes/MatchScene";
-import { connectWallet, publicKey, useTestWallet } from "./web3/wallet";
-import { joinMatch, fetchEligibility, fetchConfig, fetchLeaderboard, type GameMode } from "./net/client";
+import type { PitchTheme } from "./scenes/field";
+import { connectWallet, publicKey } from "./web3/wallet";
+import { joinMatch, fetchEligibility, fetchConfig, fetchLeaderboard, type GameMode, type GameFormat } from "./net/client";
 import { initAudio, startMusic, toggleMusic } from "./sound";
 
 const connectBtn = document.getElementById("connectBtn") as HTMLButtonElement;
-const skipBtn = document.getElementById("skipBtn") as HTMLButtonElement;
-const pvpBtn = document.getElementById("pvpBtn") as HTMLButtonElement;
-const botBtn = document.getElementById("botBtn") as HTMLButtonElement;
-const statusEl = document.getElementById("status") as HTMLSpanElement;
+const modeCards = Array.from(document.querySelectorAll<HTMLButtonElement>(".mode-card"));
+const pickOverlay = document.getElementById("pickOverlay") as HTMLDivElement;
+const lobbyPick = document.getElementById("lobbyPick") as HTMLElement;
+const gameArea = document.getElementById("gameArea") as HTMLDivElement;
+const exitBtn = document.getElementById("exitBtn") as HTMLButtonElement;
+const statusEl = document.getElementById("status") as HTMLElement;
 const walletPill = document.getElementById("walletPill") as HTMLSpanElement;
 const lbBody = document.getElementById("lbBody") as HTMLTableSectionElement;
 const gameWrap = document.getElementById("gameWrap") as HTMLDivElement;
@@ -28,6 +31,7 @@ const chatSend = document.getElementById("chatSend") as HTMLButtonElement;
 const chatLog = document.getElementById("chatLog") as HTMLDivElement;
 
 let lastMode: GameMode = "pvp";
+let lastFormat: GameFormat = "3v3";
 let currentRoom: any = null;
 
 musicBtn.addEventListener("click", () => {
@@ -39,7 +43,14 @@ let game: Phaser.Game | null = null;
 
 function setStatus(msg: string) { statusEl.textContent = msg; }
 function shorten(w: string) { return `${w.slice(0, 4)}…${w.slice(-4)}`; }
-function setPlayEnabled(on: boolean) { pvpBtn.disabled = !on; botBtn.disabled = !on; }
+function setPickEnabled(on: boolean) {
+  modeCards.forEach((b) => (b.disabled = !on));
+}
+function unlockPicker() {
+  pickOverlay.style.display = "none";
+  setPickEnabled(true);
+  connectBtn.disabled = true;
+}
 
 // ----- Chat -----
 function setChatEnabled(on: boolean) {
@@ -89,65 +100,73 @@ connectBtn.addEventListener("click", async () => {
     walletPill.style.display = "inline-block";
     walletPill.textContent = shorten(wallet);
     connectBtn.textContent = "Connected";
-    connectBtn.disabled = true;
-    skipBtn.disabled = true;
-    setPlayEnabled(true);
 
     const cfg = await fetchConfig();
     if (cfg.gateEnabled) {
       setStatus("Checking token balance…");
       const elig = await fetchEligibility(wallet);
       if (!elig.ok) {
-        setPlayEnabled(false);
         setStatus(`Need ${elig.required} tokens to play. You hold ${elig.balance}.`);
-        return;
+        return; // keep the overlay up — not eligible
       }
-      setStatus(`Eligible — you hold ${elig.balance} tokens. Choose a mode!`);
-    } else {
-      setStatus("Gate disabled (dev). Choose a mode!");
     }
+    unlockPicker();
+    setStatus("Choose your match!");
   } catch (e: any) {
     setStatus(e?.message ?? "Wallet connection failed.");
   }
 });
 
-skipBtn.addEventListener("click", () => {
-  const wallet = useTestWallet();
-  walletPill.style.display = "inline-block";
-  walletPill.textContent = `TEST ${shorten(wallet)}`;
-  connectBtn.disabled = true;
-  skipBtn.disabled = true;
-  setPlayEnabled(true);
-  setStatus("Test wallet ready (gate bypassed). Choose a mode!");
-});
+modeCards.forEach((b) =>
+  b.addEventListener("click", () => {
+    const format = (b.dataset.format as GameFormat) ?? "3v3";
+    const mode = (b.dataset.mode as GameMode) ?? "pvp";
+    startMatch(format, mode);
+  })
+);
 
-async function startMatch(mode: GameMode) {
+function exitGame() {
+  if (currentRoom) { try { currentRoom.leave(); } catch { /* ignore */ } currentRoom = null; }
+  if (game) { game.destroy(true); game = null; }
+  gameOverModal.style.display = "none";
+  gameArea.style.display = "none";
+  lobbyPick.style.display = "";
+  setChatEnabled(false);
+  setPickEnabled(true);
+  setStatus("Choose your match!");
+}
+exitBtn.addEventListener("click", exitGame);
+
+async function startMatch(format: GameFormat, mode: GameMode) {
   const wallet = publicKey();
   if (!wallet) return;
+  lastFormat = format;
   lastMode = mode;
   initAudio(); // unlock Web Audio on this user gesture
   startMusic();
   musicBtn.textContent = "♪ MUSIC: ON";
   gameOverModal.style.display = "none";
-  setPlayEnabled(false);
-  connectBtn.disabled = true;
-  setStatus(mode === "bots" ? "Starting match vs CPU…" : "Joining lobby…");
+  setPickEnabled(false);
+  const need = format === "1v1" ? 2 : 6;
+  setStatus(mode === "bots" ? `Starting ${format} vs CPU…` : `Joining ${format} lobby…`);
   try {
     if (currentRoom) { try { await currentRoom.leave(); } catch { /* ignore */ } }
-    const room = await joinMatch({ wallet }, mode);
+    const room = await joinMatch({ wallet }, mode, format);
     currentRoom = room;
-    setStatus(mode === "bots" ? "Match vs CPU — kicking off!" : "In lobby — waiting for 6 players (3v3).");
-    startGame(room);
+    lobbyPick.style.display = "none"; // hide the picker while in a match
+    gameArea.style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setStatus(mode === "bots" ? `${format} vs CPU — kicking off!` : `In lobby — waiting for ${need} players (${format}).`);
+    startGame(room, themeFor(format, mode));
     chatLog.innerHTML = "";
     addChatSys(mode === "bots" ? "Practice match vs CPU — say hi!" : "Connected. Chat with your lobby while you wait.");
     setChatEnabled(true);
     room.onMessage("chat", (m: ChatMessage) => addChatMessage(m));
     room.onMessage("matchEnd", (msg: MatchEndMessage) => showGameOver(msg, wallet));
-    room.onLeave(() => { setChatEnabled(false); addChatSys("Disconnected from match."); refreshLeaderboard(); });
+    room.onLeave(() => { setChatEnabled(false); addChatSys("Disconnected from match."); setPickEnabled(true); refreshLeaderboard(); });
   } catch (e: any) {
     setStatus(e?.message ?? "Could not join a match.");
-    setPlayEnabled(true);
-    connectBtn.disabled = false;
+    setPickEnabled(true);
   }
 }
 
@@ -170,14 +189,17 @@ function showGameOver(msg: MatchEndMessage, wallet: string) {
 
 playAgainBtn.addEventListener("click", () => {
   gameOverModal.style.display = "none";
-  startMatch(lastMode);
+  startMatch(lastFormat, lastMode);
 });
 homeBtn.addEventListener("click", () => { window.location.href = "/index.html"; });
 
-pvpBtn.addEventListener("click", () => startMatch("pvp"));
-botBtn.addEventListener("click", () => startMatch("bots"));
+function themeFor(format: GameFormat, mode: GameMode): PitchTheme {
+  if (mode === "bots") return "neon";       // AI bots -> futuristic
+  if (format === "1v1") return "street";    // 1v1 duel -> concrete cage
+  return "stadium";                          // 3v3 classic -> green stadium
+}
 
-function startGame(room: any) {
+function startGame(room: any, theme: PitchTheme) {
   if (game) game.destroy(true);
   game = new Phaser.Game({
     type: Phaser.AUTO,
@@ -185,12 +207,12 @@ function startGame(room: any) {
     height: FIELD.HEIGHT,
     parent: gameWrap,
     pixelArt: true,
-    backgroundColor: "#1c5c1c",
+    backgroundColor: "#0a0820",
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     // Register without auto-start, then start with the room so init() always has data.
     scene: [],
   });
-  game.scene.add("match", MatchScene, true, { room });
+  game.scene.add("match", MatchScene, true, { room, theme });
   // Tag the canvas so the preview/verification can find it.
   setTimeout(() => game?.canvas?.setAttribute("id", "game"), 0);
 }

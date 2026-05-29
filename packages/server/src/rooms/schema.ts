@@ -34,6 +34,7 @@ export class MatchState extends Schema {
   @type("number") scoreBlue = 0;
   @type("number") scoreOrange = 0;
   @type("number") timeLeft = 0; // seconds
+  @type("number") playersToStart = 6; // 2 for 1v1, 6 for 3v3
   // lobby | countdown | playing | ended
   @type("string") phase: "lobby" | "countdown" | "playing" | "ended" = "lobby";
   @type("number") countdown = 0;

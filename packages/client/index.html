@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pixel Pitch — On-chain 3v3 Retro Soccer on Solana</title>
-    <meta name="description" content="Hold $PITCH, drop into a 3v3 retro soccer lobby, win matches, and earn hourly token airdrops on Solana." />
+    <title>KickFi — On-chain 3v3 Retro Soccer on Solana</title>
+    <meta name="description" content="Hold $KFi, drop into a 3v3 retro soccer lobby, win matches, and earn hourly token airdrops on Solana." />
+    <link rel="icon" type="image/png" href="/kfi-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
@@ -13,13 +14,16 @@
     <!-- NAV -->
     <nav class="nav">
       <div class="wrap nav__inner">
-        <div class="brand">PIXEL<span class="ball"> ⚽ </span>PITCH</div>
+        <a class="brand" href="/index.html"><img src="/kickfi-logo.png" alt="KickFi" class="brand-logo" /></a>
         <div class="nav__links">
           <a href="#how">How it Works</a>
           <a href="#rewards">Rewards</a>
           <a href="#leaderboard">Leaderboard</a>
-          <a class="nav__tg" href="https://t.me/pixelpitch" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram">
+          <a class="nav__tg" href="https://t.me/kickfi" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+          </a>
+          <a class="nav__x" href="https://x.com/kickfi" target="_blank" rel="noopener" title="X (Twitter)" aria-label="X">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </a>
           <a class="btn btn--play" href="/play.html">PLAY NOW</a>
         </div>
@@ -40,7 +44,7 @@
         <div class="hero__stats">
           <div class="stat"><div class="n">3v3</div><div class="l">Squad Matches</div></div>
           <div class="stat"><div class="n">90s</div><div class="l">Per Game</div></div>
-          <div class="stat"><div class="n">1h</div><div class="l">Airdrop Cycle</div></div>
+          <div class="stat"><div class="n">20m</div><div class="l">Airdrop Cycle</div></div>
         </div>
 
         <div class="ca-bar">
@@ -60,7 +64,7 @@
         <div class="card">
           <div class="ico">👛</div><div class="step">STEP 01</div>
           <h3>Connect &amp; Hold</h3>
-          <p>Connect Phantom or Solflare. Hold the minimum $PITCH balance to unlock matchmaking.</p>
+          <p>Connect Phantom or Solflare. Hold the minimum $KFi balance to unlock matchmaking.</p>
         </div>
         <div class="card">
           <div class="ico">🎮</div><div class="step">STEP 02</div>
@@ -75,7 +79,7 @@
         <div class="card">
           <div class="ico">💸</div><div class="step">STEP 04</div>
           <h3>Earn Airdrops</h3>
-          <p>Every hour the top teams' wallets receive a $PITCH airdrop, straight on-chain.</p>
+          <p>Every 20 minutes the top players get a $KFi airdrop on-chain — then the standings reset and the race starts over.</p>
         </div>
       </div>
     </section>
@@ -83,15 +87,15 @@
     <!-- REWARDS -->
     <section class="wrap section" id="rewards">
       <div class="label">// THE REWARD LOOP</div>
-      <h2>Top teams get paid, every hour</h2>
+      <h2>Top players get paid, every 20 minutes</h2>
       <div class="rewards">
         <div class="reward-box">
-          <div class="big">⏱ HOURLY AIRDROP</div>
-          <p class="sub" style="margin:14px 0 0">Wins are recorded to an on-chain leaderboard. The top-performing wallets of each cycle are paid automatically in $PITCH.</p>
+          <div class="big">⏱ 20-MIN AIRDROP</div>
+          <p class="sub" style="margin:14px 0 0">Every win this cycle climbs the live standings. When the 20-minute timer hits zero, the top players are paid automatically in $KFi — then the board wipes clean for the next round.</p>
         </div>
         <ul class="ul">
-          <li><span class="tick">✔</span> Wallet-based leaderboard — your record follows your keys</li>
-          <li><span class="tick">✔</span> Token-gated lobbies keep matches real-stakes</li>
+          <li><span class="tick">✔</span> Per-player standings — your record follows your wallet</li>
+          <li><span class="tick">✔</span> Fresh 20-minute cycles — anyone can climb fast</li>
           <li><span class="tick">✔</span> Server-authoritative play — no client-side cheating</li>
           <li><span class="tick">✔</span> Payouts on Solana — fast and low fee</li>
         </ul>
@@ -99,11 +103,11 @@
     </section>
 
     <!-- LEADERBOARD -->
-    <section class="wrap section" id="leaderboard">
+    <section class="wrap section section--center" id="leaderboard">
       <div class="label">// CURRENT STANDINGS</div>
       <h2>Live leaderboard</h2>
-      <p class="sub">Top wallets by wins this season. Climb it to make the airdrop.</p>
-      <div class="lb">
+      <p class="sub">Top players this cycle — the board resets every 20 minutes, so climb it fast to make the drop.</p>
+      <div class="lb lb--pitch">
         <table>
           <thead><tr><th>#</th><th>Wallet</th><th>Wins</th><th>Goals</th></tr></thead>
           <tbody id="lbBody"><tr><td colspan="4">loading standings…</td></tr></tbody>
@@ -115,15 +119,16 @@
     <!-- FOOTER -->
     <footer class="wrap footer">
       <div>
-        <div class="brand" style="font-size:13px">PIXEL ⚽ PITCH</div>
+        <img src="/kickfi-logo.png" alt="KickFi" style="height:26px;display:block" />
         <div style="margin-top:8px">On-chain 3v3 retro soccer · built on Solana</div>
       </div>
       <div>
-        <div>$PITCH contract</div>
+        <div>$KFi contract</div>
         <div class="addr" id="contract">set TOKEN_MINT to display</div>
       </div>
       <div>
-        <a href="https://t.me/pixelpitch" target="_blank" rel="noopener">Telegram</a> ·
+        <a href="https://t.me/kickfi" target="_blank" rel="noopener">Telegram</a> ·
+        <a href="https://x.com/kickfi" target="_blank" rel="noopener">X</a> ·
         <a href="#how">How it Works</a> · <a href="/play.html">Play</a>
       </div>
     </footer>

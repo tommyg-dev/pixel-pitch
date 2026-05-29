@@ -31,6 +31,11 @@ export const MATCH = {
   COUNTDOWN_SEC: 3,
 } as const;
 
+export const AIRDROP = {
+  // Standings accumulate for this many minutes, then reset; top players get paid.
+  CYCLE_MINUTES: 20,
+} as const;
+
 export const TOKEN_GATE = {
   // SPL mint of the pump.fun token. Override via server env TOKEN_MINT.
   DEFAULT_MINT: "",
@@ -93,6 +98,7 @@ export interface MatchResultRecord {
   scoreOrange: number;
   blueWallets: string[];
   orangeWallets: string[];
+  goals: Record<string, number>; // per-wallet goals scored this match
 }
 
 export function clamp(v: number, lo: number, hi: number): number {

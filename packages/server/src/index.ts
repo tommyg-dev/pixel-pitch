@@ -5,7 +5,8 @@ import cors from "cors";
 import { Server } from "@colyseus/core";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import { MatchRoom } from "./rooms/MatchRoom.js";
-import { topPlayers, winnersSince } from "./data/leaderboard.js";
+import { cycleStandings, winnersSince } from "./data/leaderboard.js";
+import { AIRDROP } from "@pixel-pitch/shared";
 import { isEligible, gateConfig } from "./tokenGate.js";
 
 const PORT = Number(process.env.PORT ?? 2567);
@@ -26,13 +27,14 @@ app.get("/eligibility/:wallet", async (req, res) => {
   res.json(result);
 });
 
+// Current-cycle standings (per player). Resets every AIRDROP.CYCLE_MINUTES.
 app.get("/leaderboard", (_req, res) => {
-  res.json(topPlayers(50));
+  res.json(cycleStandings(AIRDROP.CYCLE_MINUTES, 50));
 });
 
-// Trailing-window winners, used by the airdrop tool (default last hour).
+// Trailing-window winners, used by the airdrop tool (defaults to one cycle).
 app.get("/airdrop/winners", (req, res) => {
-  const minutes = Number(req.query.minutes ?? 60);
+  const minutes = Number(req.query.minutes ?? AIRDROP.CYCLE_MINUTES);
   const since = Date.now() - minutes * 60_000;
   res.json(winnersSince(since));
 });
@@ -42,8 +44,15 @@ const gameServer = new Server({
   transport: new WebSocketTransport({ server: httpServer }),
 });
 
-gameServer.define("match", MatchRoom);
-gameServer.define("bots", MatchRoom, { mode: "bots" });
+// PvP rooms
+gameServer.define("match3v3", MatchRoom, { mode: "pvp", teamSize: 3 });
+gameServer.define("match1v1", MatchRoom, { mode: "pvp", teamSize: 1 });
+// vs-CPU practice rooms
+gameServer.define("bots3v3", MatchRoom, { mode: "bots", teamSize: 3 });
+gameServer.define("bots1v1", MatchRoom, { mode: "bots", teamSize: 1 });
+// Back-compat aliases
+gameServer.define("match", MatchRoom, { mode: "pvp", teamSize: 3 });
+gameServer.define("bots", MatchRoom, { mode: "bots", teamSize: 3 });
 
 httpServer.listen(PORT, () => {
   console.log(`pixel-pitch server listening on :${PORT}`);

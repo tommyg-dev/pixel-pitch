@@ -33,8 +33,8 @@ export class HeroScene extends Phaser.Scene {
 
   create() {
     ensureBallTexture(this);
-    drawStadium(this);
-    drawPitch(this);
+    drawStadium(this, "stadium");
+    drawPitch(this, "stadium");
     drawAdBoards(this);
 
     this.ballShadow = this.add.ellipse(this.bx, this.by + 11, 22, 9, 0x000000, 0.28).setDepth(4);

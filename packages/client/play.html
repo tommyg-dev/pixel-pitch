@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Play · Pixel Pitch</title>
+    <title>Play · KickFi</title>
+    <link rel="icon" type="image/png" href="/kfi-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
@@ -11,7 +12,7 @@
   <body>
     <nav class="nav">
       <div class="wrap nav__inner">
-        <a class="brand" href="/index.html" style="text-decoration:none">PIXEL<span class="ball"> ⚽ </span>PITCH</a>
+        <a class="brand" href="/index.html"><img src="/kickfi-logo.png" alt="KickFi" class="brand-logo" /></a>
         <div class="nav__links">
           <a href="/index.html">← Home</a>
           <button id="musicBtn" class="btn btn--sm btn--ghost" title="Toggle music">♪ MUSIC: OFF</button>
@@ -21,18 +22,46 @@
     </nav>
 
     <main class="wrap play-main">
-      <div class="controls">
-        <button id="connectBtn" class="btn btn--sm">CONNECT WALLET</button>
-        <button id="skipBtn" class="btn btn--sm btn--ghost">SKIP (TEST)</button>
-        <button id="pvpBtn" class="btn btn--sm btn--green" disabled>PLAY VS PLAYERS</button>
-        <button id="botBtn" class="btn btn--sm" disabled>PLAY VS BOTS</button>
-        <span id="status" class="status">Connect Phantom or Solflare to play.</span>
-      </div>
+      <!-- match select -->
+      <section class="pick" id="lobbyPick">
+        <h2 class="pick__title">SELECT GAME MODE &amp; STYLE</h2>
+        <div class="modes">
+          <button class="mode-card mode-card--duel" data-format="1v1" data-mode="pvp" disabled>
+            <span class="mode-card__title">1v1 DUEL</span>
+            <span class="mode-card__select">SELECT</span>
+          </button>
+          <button class="mode-card mode-card--classic" data-format="3v3" data-mode="pvp" disabled>
+            <span class="mode-card__title">3v3 CLASSIC</span>
+            <span class="mode-card__select">SELECT</span>
+          </button>
+          <button class="mode-card mode-card--bots" data-format="3v3" data-mode="bots" disabled>
+            <span class="mode-card__title">AI BOTS MODE</span>
+            <span class="mode-card__select">SELECT</span>
+          </button>
+        </div>
+        <div id="status" class="status">Connect a wallet to choose a match.</div>
 
-      <div id="gameWrap"></div>
-      <p class="hint">Move: <b>WASD / Arrows</b> &nbsp;•&nbsp; Kick: <b>Space</b></p>
+        <!-- connect-wallet overlay -->
+        <div class="pick__overlay" id="pickOverlay">
+          <div class="pick__overlay-card">
+            <div class="pick__overlay-title">CONNECT TO PLAY</div>
+            <p class="pick__overlay-sub">Hold $KFi and connect to enter matchmaking.</p>
+            <div class="pick__overlay-btns">
+              <button id="connectBtn" class="btn btn--play">CONNECT WALLET</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <section class="chat" id="chat">
+      <!-- game + lobby (shown after selecting a match) -->
+      <section class="game-area" id="gameArea" style="display:none">
+        <div class="game-bar">
+          <button id="exitBtn" class="btn btn--sm btn--ghost">← EXIT GAME</button>
+        </div>
+        <div id="gameWrap"></div>
+        <p class="hint">Move: <b>WASD / Arrows</b> &nbsp;•&nbsp; Kick: <b>Space</b></p>
+
+        <section class="chat" id="chat">
         <div class="chat__head">// LOBBY CHAT</div>
         <div class="chat__log" id="chatLog">
           <div class="chat__sys">Join a match to chat with your lobby.</div>
@@ -42,6 +71,7 @@
                  placeholder="Join a match to chat…" autocomplete="off" disabled />
           <button id="chatSend" class="btn btn--sm" type="submit" disabled>SEND</button>
         </form>
+        </section>
       </section>
 
       <section class="section" id="leaderboard" style="padding-top:18px">

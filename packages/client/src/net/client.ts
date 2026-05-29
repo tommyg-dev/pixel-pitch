@@ -7,9 +7,11 @@ const WS_URL = import.meta.env.VITE_SERVER_WS ?? "ws://localhost:2567";
 const client = new Client(WS_URL);
 
 export type GameMode = "pvp" | "bots";
+export type GameFormat = "1v1" | "3v3";
 
-export async function joinMatch(options: JoinOptions, mode: GameMode = "pvp"): Promise<Room> {
-  return client.joinOrCreate(mode === "bots" ? "bots" : "match", options);
+export async function joinMatch(options: JoinOptions, mode: GameMode = "pvp", format: GameFormat = "3v3"): Promise<Room> {
+  const prefix = mode === "bots" ? "bots" : "match";
+  return client.joinOrCreate(`${prefix}${format}`, options);
 }
 
 export async function fetchEligibility(wallet: string) {

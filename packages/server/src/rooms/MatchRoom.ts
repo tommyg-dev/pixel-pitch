@@ -13,14 +13,19 @@ export class MatchRoom extends Room<MatchState> {
   private secondTimer = 0;
   private matchId = randomUUID();
   private mode: "pvp" | "bots" = "pvp";
+  private teamSize: number = MATCH.TEAM_SIZE;
+  private playersToStart: number = MATCH.PLAYERS_TO_START;
   private botSeq = 0;
 
-  onCreate(options?: { mode?: "pvp" | "bots" }) {
+  onCreate(options?: { mode?: "pvp" | "bots"; teamSize?: number }) {
     this.mode = options?.mode === "bots" ? "bots" : "pvp";
+    this.teamSize = options?.teamSize === 1 ? 1 : MATCH.TEAM_SIZE;
+    this.playersToStart = this.teamSize * 2;
     // A bots room is single-player vs AI, so it only accepts one human client.
-    if (this.mode === "bots") this.maxClients = 1;
+    this.maxClients = this.mode === "bots" ? 1 : this.playersToStart;
     this.setState(new MatchState());
     this.state.timeLeft = MATCH.DURATION_SEC;
+    this.state.playersToStart = this.playersToStart;
 
     this.onMessage("input", (client, msg: InputMessage) => {
       const p = this.state.players.get(client.sessionId);
@@ -83,7 +88,7 @@ export class MatchRoom extends Room<MatchState> {
     }
 
     // PvP: lock and kick off once the lobby is full.
-    if (this.state.players.size >= MATCH.PLAYERS_TO_START) {
+    if (this.state.players.size >= this.playersToStart) {
       this.lock();
       this.startCountdown();
     }
@@ -101,8 +106,8 @@ export class MatchRoom extends Room<MatchState> {
       p.connected = true;
       this.state.players.set(id, p);
     };
-    while (this.countTeam("blue") < MATCH.TEAM_SIZE) addBot("blue");
-    while (this.countTeam("orange") < MATCH.TEAM_SIZE) addBot("orange");
+    while (this.countTeam("blue") < this.teamSize) addBot("blue");
+    while (this.countTeam("orange") < this.teamSize) addBot("orange");
     resetPositions(this.state);
   }
 
@@ -173,10 +178,14 @@ export class MatchRoom extends Room<MatchState> {
     this.state.phase = "ended";
     const blueWallets: string[] = [];
     const orangeWallets: string[] = [];
+    const goals: Record<string, number> = {};
     this.state.players.forEach((p) => {
       (p.team === "blue" ? blueWallets : orangeWallets).push(p.wallet);
       // Bots-mode is practice: never persist to the leaderboard/airdrop pool.
-      if (this.mode === "pvp" && !p.isBot) addGoals(p.wallet, p.goals);
+      if (this.mode === "pvp" && !p.isBot) {
+        addGoals(p.wallet, p.goals);
+        if (p.goals > 0) goals[p.wallet] = p.goals;
+      }
     });
 
     const winner =
@@ -195,6 +204,7 @@ export class MatchRoom extends Room<MatchState> {
         scoreOrange: this.state.scoreOrange,
         blueWallets: blueWallets.filter((w) => !w.startsWith("BOT:")),
         orangeWallets: orangeWallets.filter((w) => !w.startsWith("BOT:")),
+        goals,
       });
     }
 

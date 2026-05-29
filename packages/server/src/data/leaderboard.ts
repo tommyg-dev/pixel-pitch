@@ -72,6 +72,34 @@ export function topPlayers(limit = 50): LeaderboardEntry[] {
     .slice(0, limit);
 }
 
+/**
+ * Per-player standings for the CURRENT cycle only. Standings reset on each
+ * aligned cycle boundary (so the board wipes every `cycleMinutes`).
+ */
+export function cycleStandings(cycleMinutes: number, limit = 50): { wallet: string; wins: number; goals: number }[] {
+  const store = load();
+  const cycleMs = cycleMinutes * 60_000;
+  const cycleStart = Date.now() - (Date.now() % cycleMs);
+  const tally = new Map<string, { wins: number; goals: number }>();
+  const get = (w: string) => {
+    let e = tally.get(w);
+    if (!e) { e = { wins: 0, goals: 0 }; tally.set(w, e); }
+    return e;
+  };
+  for (const m of store.matches) {
+    if (m.endedAt < cycleStart) continue;
+    if (m.winner !== "draw") {
+      const winners = m.winner === "blue" ? m.blueWallets : m.orangeWallets;
+      for (const w of winners) if (!w.startsWith("BOT:")) get(w).wins++;
+    }
+    if (m.goals) for (const [w, g] of Object.entries(m.goals)) if (!w.startsWith("BOT:")) get(w).goals += g;
+  }
+  return [...tally.entries()]
+    .map(([wallet, v]) => ({ wallet, wins: v.wins, goals: v.goals }))
+    .sort((a, b) => b.wins - a.wins || b.goals - a.goals)
+    .slice(0, limit);
+}
+
 /** Wallets that won at least one match in the trailing window (for airdrops). */
 export function winnersSince(sinceMs: number): { wallet: string; wins: number }[] {
   const store = load();

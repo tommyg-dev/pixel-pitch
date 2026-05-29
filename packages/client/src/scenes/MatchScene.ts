@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import type { Room } from "colyseus.js";
 import { FIELD, MATCH, type InputMessage } from "@pixel-pitch/shared";
 import { CHAR_SCALE, ensureBallTexture, ensurePlayerTextures, variantFor } from "./sprites";
-import { drawStadium, drawPitch, drawAdBoards } from "./field";
+import { drawStadium, drawPitch, drawAdBoards, type PitchTheme } from "./field";
 import { playGoal, playWhistle, playMatchEnd } from "../sound";
 
 interface PlayerView extends Phaser.GameObjects.Container {
@@ -32,19 +32,21 @@ export class MatchScene extends Phaser.Scene {
   private prevScoreOrange = 0;
   private prevPhase = "lobby";
   private myTeam: "blue" | "orange" | null = null;
+  private theme: PitchTheme = "stadium";
 
   constructor() { super("match"); }
 
-  init(data: { room: Room }) {
+  init(data: { room: Room; theme?: PitchTheme }) {
     this.room = data.room;
     this.mySessionId = data.room.sessionId;
+    this.theme = data.theme ?? "stadium";
   }
 
   create() {
     ensureBallTexture(this);
     this.makeSpark();
-    drawStadium(this);
-    drawPitch(this);
+    drawStadium(this, this.theme);
+    drawPitch(this, this.theme);
     drawAdBoards(this);
     this.buildScoreboard();
 
@@ -238,7 +240,7 @@ export class MatchScene extends Phaser.Scene {
     this.scoreText.setText(`${state.scoreBlue}   ${state.scoreOrange}`);
     this.timeText.setText(fmtTime(state.timeLeft));
     if (state.phase === "lobby") {
-      this.banner.setText(`WAITING FOR PLAYERS\n${state.players.size} / ${MATCH.PLAYERS_TO_START}`);
+      this.banner.setText(`WAITING FOR PLAYERS\n${state.players.size} / ${state.playersToStart || MATCH.PLAYERS_TO_START}`);
     } else if (state.phase === "countdown") {
       this.banner.setText(state.countdown > 0 ? `${state.countdown}` : "GO!");
     } else if (state.phase === "playing") {

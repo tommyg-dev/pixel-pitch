@@ -85,12 +85,17 @@ body::after {
 .brand { font-family: var(--pixel); font-size: 16px; color: var(--gold);
   text-shadow: 2px 2px 0 #b9000c; letter-spacing: 1px; }
 .brand .ball { color: var(--ink); }
+.brand { display: inline-flex; align-items: center; text-decoration: none; }
+.brand-logo { height: 32px; width: auto; display: block; }
 .nav__links { display: flex; gap: 22px; margin-left: auto; align-items: center; }
 .nav__links a { color: var(--muted); text-decoration: none; font-size: 21px; }
 .nav__links a:hover { color: var(--ink); text-shadow: 0 0 10px var(--blue); }
-.nav__tg { display: inline-flex; align-items: center; color: var(--muted); transition: color .12s; }
+.nav__tg, .nav__x { display: inline-flex; align-items: center; color: var(--muted); transition: color .12s; }
 .nav__tg:hover { color: #29a9eb; }
-.nav__links a.btn { font-size: 10px; } /* keep PLAY NOW button text sized as a button */
+.nav__x:hover { color: #ffffff; }
+/* PLAY NOW button: keep button sizing AND force black text (override .nav__links a) */
+.nav__links a.btn { font-size: 10px; }
+.nav__links a.btn--play { color: #111111; }
 
 /* ===== hero (animated game background + overlay) ===== */
 .hero { position: relative; min-height: 92vh; display: flex; align-items: center; overflow: hidden; }
@@ -167,8 +172,23 @@ body::after {
 .ul { list-style: none; padding: 0; margin: 0; }
 .ul li { padding: 9px 0; border-bottom: 1px dashed rgba(154,160,212,.25); font-size: 21px; }
 
+/* centered section variant */
+.section--center { text-align: center; }
+.section--center .sub { margin-left: auto; margin-right: auto; max-width: 60ch; }
+
 /* leaderboard preview */
 .lb { background: var(--panel); border: 2px solid rgba(120,120,255,.2); border-radius: 12px; overflow: hidden; }
+/* pitch-style standings box (homepage) */
+.lb--pitch {
+  max-width: 700px; margin: 0 auto; border: 3px solid #2c2a5e; border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.5);
+  background:
+    linear-gradient(rgba(7,7,26,.82), rgba(7,7,26,.86)),
+    repeating-linear-gradient(90deg, #4aa83f 0 22px, #3f9a37 22px 44px);
+}
+.lb--pitch table, .lb--pitch th, .lb--pitch td { background: transparent; }
+.lb--pitch th, .lb--pitch td { text-align: center; }
+.lb--pitch td { border-top: 1px solid rgba(255,255,255,.14); }
 .lb table { width: 100%; border-collapse: collapse; }
 .lb th { font-family: var(--pixel); font-size: 10px; color: var(--gold); text-align: left;
   padding: 16px 18px; background: var(--panel2); }
@@ -187,7 +207,7 @@ body::after {
 /* ===== play page ===== */
 .play-main { padding: 22px 0 60px; }
 .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 16px 0; }
-.status { font-size: 21px; color: var(--muted); }
+.status { font-size: 21px; color: var(--muted); display: block; text-align: center; margin-top: 18px; }
 .pill { font-family: var(--pixel); font-size: 10px; background: var(--panel2);
   border: 1px solid rgba(120,120,255,.35); padding: 8px 12px; border-radius: 999px; color: var(--green); }
 #gameWrap { display: flex; justify-content: center; }
@@ -197,6 +217,48 @@ body::after {
 }
 .hint { font-size: 19px; color: var(--muted); text-align: center; margin: 14px 0; }
 .hint b { color: var(--gold); }
+
+/* ===== match picker ===== */
+.pick { position: relative; padding: 28px 0 8px; min-height: 360px; }
+.pick__title { font-family: var(--pixel); font-size: 18px; color: var(--gold);
+  text-shadow: 2px 2px 0 #b9000c; text-align: center; margin: 6px 0 24px; letter-spacing: 1px; }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1000px; margin: 0 auto; }
+.mode-card {
+  position: relative; cursor: pointer; border: 3px solid #2c2a5e; border-radius: 14px;
+  min-height: 300px; overflow: hidden; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+  background-size: cover; background-position: center;
+  box-shadow: 0 12px 30px rgba(0,0,0,.5);
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.mode-card:hover:not(:disabled) { transform: translateY(-6px); border-color: var(--gold);
+  box-shadow: 0 18px 40px rgba(0,0,0,.6); }
+.mode-card:disabled { cursor: default; opacity: .7; }
+.mode-card__title { font-family: var(--pixel); font-size: 22px; line-height: 1.3; text-align: center;
+  text-shadow: 2px 2px 0 #000, 0 0 12px rgba(0,0,0,.6); }
+.mode-card__select { font-family: var(--pixel); font-size: 12px; color: #1a1030; background: var(--gold);
+  padding: 13px 24px; border-radius: 6px; box-shadow: 0 4px 0 #b98c00; }
+.mode-card:hover:not(:disabled) .mode-card__select { background: #fff; }
+/* Photo backgrounds (drop files in /public/modes/); themed colour shows until then. */
+.mode-card--duel { background-color: #3b3f49;
+  background-image: linear-gradient(rgba(10,12,22,.2), rgba(10,12,22,.6)), url(/modes/mode-1v1.png); }
+.mode-card--classic { background-color: #2f7a37;
+  background-image: linear-gradient(rgba(7,20,10,.15), rgba(7,20,10,.55)), url(/modes/mode-3v3.jpg); }
+.mode-card--bots { background-color: #3a1d6e;
+  background-image: linear-gradient(rgba(20,5,40,.2), rgba(20,5,40,.6)), url(/modes/mode-ai.jpg); }
+
+.game-bar { display: flex; align-items: center; margin-bottom: 12px; }
+
+.pick__overlay { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center;
+  justify-content: center; background: rgba(7,7,26,.78); backdrop-filter: blur(4px); border-radius: 12px; }
+.pick__overlay-card { text-align: center; padding: 32px 38px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+  border: 3px solid var(--gold); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,.6); }
+.pick__overlay-title { font-family: var(--pixel); font-size: 18px; color: var(--gold);
+  text-shadow: 2px 2px 0 #b9000c; margin-bottom: 12px; }
+.pick__overlay-sub { color: var(--muted); font-size: 19px; margin: 0 0 22px; }
+.pick__overlay-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; align-items: center; }
+.game-area { margin-top: 26px; }
 
 /* ===== lobby chat ===== */
 .chat { margin: 18px 0 6px; }
@@ -252,6 +314,8 @@ body::after {
 /* responsive */
 @media (max-width: 900px) {
   .cards { grid-template-columns: 1fr 1fr; }
+  .modes { grid-template-columns: 1fr; }
+  .mode-card { min-height: 180px; }
   .rewards { grid-template-columns: 1fr; }
   .hero { min-height: 80vh; }
   .hero h1 { font-size: 30px; }

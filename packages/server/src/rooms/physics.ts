@@ -20,7 +20,8 @@ export function resetPositions(state: MatchState) {
     const baseX = teamLeft ? FIELD.WIDTH * 0.3 : FIELD.WIDTH * 0.7;
     arr.forEach((p, i) => {
       p.x = baseX;
-      p.y = FIELD.HEIGHT * (0.25 + 0.25 * i);
+      // Evenly distribute vertically (1 player -> centre, 3 players -> thirds).
+      p.y = FIELD.HEIGHT * ((i + 1) / (arr.length + 1));
       p.vx = 0;
       p.vy = 0;
     });
