@@ -39,8 +39,8 @@ export const AIRDROP = {
 export const TOKEN_GATE = {
   // SPL mint of the pump.fun token. Override via server env TOKEN_MINT.
   DEFAULT_MINT: "",
-  // Minimum raw token balance (UI amount) required to enter matchmaking.
-  DEFAULT_MIN_HOLD: 1,
+  // Minimum token balance (UI amount) required to enter matchmaking.
+  DEFAULT_MIN_HOLD: 500000,
 } as const;
 
 export type Team = "blue" | "orange";

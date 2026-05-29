@@ -3,7 +3,7 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 const RPC_URL = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 const MINT = process.env.TOKEN_MINT ?? "";
-const MIN_HOLD = Number(process.env.TOKEN_MIN_HOLD ?? "1");
+const MIN_HOLD = Number(process.env.TOKEN_MIN_HOLD ?? "500000");
 
 const connection = new Connection(RPC_URL, "confirmed");
 
