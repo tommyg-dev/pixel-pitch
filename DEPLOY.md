@@ -58,6 +58,32 @@ If you change the env vars later, hit **Redeploy** on Vercel (Vite inlines them 
 
 ---
 
+## Airdrop worker (auto-payouts on Railway)
+
+Run the payout loop as a **separate Railway service** so it pays automatically 24/7
+(top 5 split `AIRDROP_PCT`% of the treasury every `WINDOW_MINUTES`).
+
+1. Railway → same project → **New → GitHub Repo** → pick `pixel-pitch` again
+   (this creates a second service).
+2. In that service → **Settings**:
+   - **Build Command**: `npm install && npm run airdrop:build`
+   - **Start Command**: `npm run airdrop:loop`
+   - Root Directory: leave as repo root.
+3. In that service → **Variables**, add:
+   | Variable | Value |
+   |---|---|
+   | `TOKEN_MINT` | `EmBaE6Td1rg1oa4F7PNyozPnYeTQ6FLXhAwKpLV2pump` |
+   | `TREASURY_ADDRESS` | `EuET2mzucF7FjKSGhFWxKGvE4txhwV69pz4NN5SHxeKp` |
+   | `PAYER_SECRET` | the treasury's base58 private key (Solflare export) |
+   | `SOLANA_RPC_URL` | a paid mainnet RPC (Helius/QuickNode) |
+   | `SERVER_HTTP` | `https://pixel-pitchserver-production.up.railway.app` |
+   | `WINDOW_MINUTES` | `20` |
+   | `AIRDROP_PCT` | `0.4` |
+   | `TOP_N` | `5` |
+   | `RANK_WEIGHTS` | `40,25,11.67,11.67,11.66` |
+4. Deploy. The worker logs each cycle's payout. It's a **worker** (no public domain
+   needed). Keep the treasury funded with only what you're comfortable auto-sending.
+
 ## Things to upgrade before real launch
 
 - **Leaderboard persistence**: it currently writes a JSON file that resets on every

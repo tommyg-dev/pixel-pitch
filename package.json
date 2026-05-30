@@ -17,7 +17,9 @@
     "dev:server": "npm run dev -w @pixel-pitch/server",
     "dev:client": "npm run dev -w @pixel-pitch/client",
     "dev": "npm run build:shared && concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
-    "airdrop": "npm run start -w @pixel-pitch/airdrop --"
+    "airdrop": "npm run start -w @pixel-pitch/airdrop --",
+    "airdrop:build": "npm run build -w @pixel-pitch/airdrop",
+    "airdrop:loop": "node packages/airdrop/dist/index.js --loop"
   },
   "engines": {
     "node": ">=20.12"
