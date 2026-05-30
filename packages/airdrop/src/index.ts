@@ -8,7 +8,16 @@ import {
   getAssociatedTokenAddress,
   getOrCreateAssociatedTokenAccount,
   createTransferCheckedInstruction,
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
+import type { PublicKey as PK } from "@solana/web3.js";
+
+async function detectTokenProgram(connection: Connection, mint: PublicKey): Promise<PK> {
+  const info = await connection.getAccountInfo(mint);
+  if (info?.owner.equals(TOKEN_2022_PROGRAM_ID)) return TOKEN_2022_PROGRAM_ID;
+  return TOKEN_PROGRAM_ID;
+}
 
 try { process.loadEnvFile(new URL("../.env", import.meta.url)); } catch { /* optional */ }
 
@@ -37,7 +46,8 @@ async function main() {
 async function runOnce() {
   const connection = new Connection(RPC, "confirmed");
   const mint = new PublicKey(MINT);
-  const decimals = (await getMint(connection, mint)).decimals;
+  const tokenProgram = await detectTokenProgram(connection, mint); // legacy SPL or Token-2022
+  const decimals = (await getMint(connection, mint, undefined, tokenProgram)).decimals;
   const payer = loadPayer(PAYER_PATH);
 
   // Safety: if a treasury address is configured, refuse to run with a mismatched key.
@@ -49,7 +59,7 @@ async function runOnce() {
   }
 
   // 1) treasury balance -> pool = POOL_PCT% of it
-  const balanceUi = await treasuryBalance(connection, mint, payer.publicKey, decimals);
+  const balanceUi = await treasuryBalance(connection, mint, payer.publicKey, decimals, tokenProgram);
   const poolUi = (balanceUi * POOL_PCT) / 100;
 
   // 2) top N players this cycle
@@ -76,15 +86,15 @@ async function runOnce() {
 
   if (!EXECUTE) return console.log("\n[dry-run] Re-run with --execute (one-shot) or --loop (auto every cycle).");
 
-  const fromAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, payer.publicKey);
+  const fromAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, payer.publicKey, false, undefined, undefined, tokenProgram);
   for (let i = 0; i < winners.length; i++) {
     const raw = BigInt(Math.floor(sharesUi[i] * 10 ** decimals));
     if (raw <= 0n) continue;
     try {
       const owner = new PublicKey(winners[i].wallet);
-      const toAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, owner);
+      const toAta = await getOrCreateAssociatedTokenAccount(connection, payer, mint, owner, false, undefined, undefined, tokenProgram);
       const tx = new Transaction().add(
-        createTransferCheckedInstruction(fromAta.address, mint, toAta.address, payer.publicKey, raw, decimals)
+        createTransferCheckedInstruction(fromAta.address, mint, toAta.address, payer.publicKey, raw, decimals, [], tokenProgram)
       );
       const sig = await connection.sendTransaction(tx, [payer]);
       await connection.confirmTransaction(sig, "confirmed");
@@ -116,10 +126,10 @@ function runLoop() {
   schedule();
 }
 
-async function treasuryBalance(connection: Connection, mint: PublicKey, owner: PublicKey, decimals: number): Promise<number> {
+async function treasuryBalance(connection: Connection, mint: PublicKey, owner: PublicKey, decimals: number, tokenProgram: PK): Promise<number> {
   try {
-    const ata = await getAssociatedTokenAddress(mint, owner);
-    const acc = await getAccount(connection, ata);
+    const ata = await getAssociatedTokenAddress(mint, owner, false, tokenProgram);
+    const acc = await getAccount(connection, ata, undefined, tokenProgram);
     return Number(acc.amount) / 10 ** decimals;
   } catch { return 0; }
 }

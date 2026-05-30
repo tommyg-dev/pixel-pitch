@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 const RPC_URL = process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 const MINT = process.env.TOKEN_MINT ?? "";
@@ -14,15 +14,14 @@ const connection = new Connection(RPC_URL, "confirmed");
 export async function getTokenBalance(walletBase58: string): Promise<number> {
   if (!MINT) return Number.POSITIVE_INFINITY;
   const owner = new PublicKey(walletBase58);
-  const mint = new PublicKey(MINT);
-  const res = await connection.getParsedTokenAccountsByOwner(owner, {
-    programId: TOKEN_PROGRAM_ID,
-  });
+  const mintStr = new PublicKey(MINT).toBase58();
   let total = 0;
-  for (const { account } of res.value) {
-    const info = account.data.parsed?.info;
-    if (info?.mint === mint.toBase58()) {
-      total += info.tokenAmount?.uiAmount ?? 0;
+  // Check both the legacy SPL Token program and Token-2022 (pump.fun $KFi is Token-2022).
+  for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+    const res = await connection.getParsedTokenAccountsByOwner(owner, { programId });
+    for (const { account } of res.value) {
+      const info = account.data.parsed?.info;
+      if (info?.mint === mintStr) total += info.tokenAmount?.uiAmount ?? 0;
     }
   }
   return total;
